@@ -13,11 +13,10 @@ class SpatialObject:
         raise NotImplementedError
     
 class Parcel (SpatialObject):
-
-    VALID_ZONES = {'Residential', 'Commercial', 'Industrial'}
     """
     From Lab 3
     """
+    VALID_ZONES = {'Residential', 'Commercial', 'Industrial'}
 
     def __init__(self, p_id, zone, is_active, geometry_data):
         if zone not in self.VALID_ZONES:
@@ -27,15 +26,34 @@ class Parcel (SpatialObject):
         self.zone = zone
         self.is_active = is_active
 
+    def effective_area(self):
+        """
+        Parcel area is the polygon area.
+        Returns the area of the polygon in square map units. (float)
+        """
+        return self.geometry.area
 
 class Building(SpatialObject):
 
     def __init__(self, geometry_data, floors):
         super().__init__(geometry_data)
         self.floors = floors
-    
+
+    def effective_area(self):
+        """
+        Represents total floor area
+        Returns total floor area across all storeys. (float)
+        """
+        return self.geometry.area * self.floors
+
 class Road(SpatialObject):
     def __init__(self, geometry_data, width):
         super().__init__(geometry_data)
         self.width = width
     
+    def effective_area(self):
+        """
+        Represents road area. Uses buffer.
+        Returns the estimated road surface area. (float)
+        """
+        return self.geometry.buffer(self.width).area
