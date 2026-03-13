@@ -1,4 +1,5 @@
 from shapely.geometry import shape
+import math
 
 class SpatialObject:
 
@@ -11,6 +12,13 @@ class SpatialObject:
         Subclasses must implement this behavior.
         """
         raise NotImplementedError
+    
+    def scale(self):
+        """
+        Conversion from degrees to sqaure meters from Copilot
+        """
+        lat = self.geometry.centroid.y
+        return (111000 * math.cos(math.radians(lat))) * 111000
     
 class Parcel (SpatialObject):
     """
@@ -31,7 +39,7 @@ class Parcel (SpatialObject):
         Parcel area is the polygon area.
         Returns the area of the polygon in square map units. (float)
         """
-        return self.geometry.area
+        return self.geometry.area * self.scale()
 
 class Building(SpatialObject):
 
@@ -44,7 +52,7 @@ class Building(SpatialObject):
         Represents total floor area
         Returns total floor area across all storeys. (float)
         """
-        return self.geometry.area * self.floors
+        return self.geometry.area * self.floors * self.scale()
 
 class Road(SpatialObject):
     def __init__(self, geometry_data, width):
@@ -56,4 +64,6 @@ class Road(SpatialObject):
         Represents road area. Uses buffer.
         Returns the estimated road surface area. (float)
         """
-        return self.geometry.buffer(self.width).area
+        lat = self.geometry.centroid.y
+        width_degrees = self.width / 111000
+        return self.geometry.buffer(width_degrees).area * self.scale()
